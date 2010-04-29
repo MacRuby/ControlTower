@@ -1,0 +1,57 @@
+#!/usr/bin/env macruby
+# This file is covered by the Ruby license. See COPYING for more details.
+# Copyright (C) 2009-2010, Apple Inc. All rights reserved.
+
+require 'control_tower'
+require 'optparse'
+
+# Some default values
+@options = {
+  :rackup => './config.ru',
+  :port => '8080',
+  :host => 'localhost'
+}
+
+OptionParser.new do |opts|
+  opts.on("-R", "--rackup [FILE]", "Rack-up Configuration File") do |rackup|
+    @options[:rackup] = rackup
+  end
+
+  opts.on("-p", "--port [SERVER_PORT]", Integer, "Port on which to run the server") do |port|
+    @options[:port] = port
+  end
+
+  opts.on("-h", "--host [HOSTNAME]", "Hostname for the server") do |host|
+    @options[:host] = host
+  end
+
+  opts.on("-c", "--[no]-concurrency", "Handle requests concurrently") do |concurrent|
+    @options[:concurrent] = concurrent
+  end
+end.parse!
+
+unless File.exist? File.expand_path(@options[:rackup])
+  puts "We only know how to deal with Rack-up configs for now"
+  exit 1
+end
+
+unless File.exist? File.expand_path(@options[:rackup])
+  puts "We only know how to deal with Rack-up configs for now"
+  exit 1
+end
+
+# Under construction...everything is development!
+ENV['RACK_ENV'] = 'development'
+
+rackup_config = File.read(File.expand_path(@options[:rackup]))
+app = eval("Rack::Builder.new {( #{rackup_config}\n )}.to_app", TOPLEVEL_BINDING)
+
+# Let's get to business!
+server = ControlTower::Server.new(app, @options)
+if server
+  puts "You are cleared for take-off!"
+  server.start
+else
+  puts "Mayday! Mayday! Eject! Eject!\n#{$!}"
+  exit 1
+end
