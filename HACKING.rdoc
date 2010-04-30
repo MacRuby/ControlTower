@@ -1,0 +1,17 @@
+== Hacking Control Tower
+
+Control Tower is still in very early development. It is being developed as part
+of the MacRuby project, so be sure to familiarize yourself with MacRuby's
+HACKING.rdoc, as all guidelines there apply here as well. If you have any ideas
+or suggestions for improvements, please communicate them with the MacRuby
+developer's list at <macruby-devel@lists.macosforge.org>. You can also find more
+information at the MacRuby website (http://www.macruby.org/).
+
+=== Debugging
+
+==== Environment variables
+
+Currently, there is only one environment variable specifically for debugging
+Control Tower:
+
+* CT_DEBUG: This will turn on debug logging until we get a better logger.
