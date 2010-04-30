@@ -1,0 +1,20 @@
+For 0.1:
+
+[ ] Logging!
+  [ ] An ASL-based Logger class
+  [ ] Request logging (e.g. appache_access.log)
+  [ ] Error logging (e.g. appache_error.log)
+  [ ] Debug logging
+[ ] Testing!
+  [ ] Parser test cases
+  [ ] GET test cases
+  [ ] POST test cases
+  [ ] Concurrency testing
+[ ] Handle broken request pipes
+[ ] Don't reset peer connections
+[ ] Protect against malformed Content-Length in headers
+
+For future:
+
+[ ] Improve body loading
+[ ] Fully-async file upload
