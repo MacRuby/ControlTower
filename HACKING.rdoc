@@ -7,6 +7,19 @@ or suggestions for improvements, please communicate them with the MacRuby
 developer's list at <macruby-devel@lists.macosforge.org>. You can also find more
 information at the MacRuby website (http://www.macruby.org/).
 
+
+== CAUTION! AVERTISSEMENT! VOORZICHTIG! 注意!
+
+DO NOT EDIT http11_parser.c! THIS FILE IS MACHINE GENERATED CODE.
+NE PAS http11_parser.c EDIT! Ce fichier est code machine généré.
+EDIT http11_parser.c NIET! Dit bestand wordt MACHINE gegenereerde code.
+編集しないのhttp11_parser.c！このファイルを機械生成されたコードです。
+
+If you really must, you can recreate http11_parser.c from http11_parser.rl using
+Ragel (not included). It would also be acceptable to replace the parser all at
+once, but editing it is not likely to ever be a good idea.
+
+
 === Debugging
 
 ==== Environment variables
