@@ -15,3 +15,16 @@ Currently, there is only one environment variable specifically for debugging
 Control Tower:
 
 * CT_DEBUG: This will turn on debug logging until we get a better logger.
+
+=== Known Issues
+
+* Error compiling Regular Expression in Rack::Request
+    Workaround: Modify line 150 in rack/request.rb like so
+-          form_vars.sub!(/\0\z/, '')
++          form_vars.slice!(-1) if form_vars[-1] == "\0"
+
+* Problem with Sinatra > 1.0 using Rack.release
+    Workaround: Modify line 39 in sinatra/base.rb like so
+-    if Rack.release < '1.1'
++    if Rack.version < '1.1'
+
