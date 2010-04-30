@@ -9,7 +9,8 @@ require 'optparse'
 @options = {
   :rackup => './config.ru',
   :port => '8080',
-  :host => 'localhost'
+  :host => 'localhost',
+  :concurrent => false
 }
 
 OptionParser.new do |opts|
@@ -25,15 +26,10 @@ OptionParser.new do |opts|
     @options[:host] = host
   end
 
-  opts.on("-c", "--[no]-concurrency", "Handle requests concurrently") do |concurrent|
+  opts.on("-c", "--[no-]concurrency", "Handle requests concurrently") do |concurrent|
     @options[:concurrent] = concurrent
   end
 end.parse!
-
-unless File.exist? File.expand_path(@options[:rackup])
-  puts "We only know how to deal with Rack-up configs for now"
-  exit 1
-end
 
 unless File.exist? File.expand_path(@options[:rackup])
   puts "We only know how to deal with Rack-up configs for now"
