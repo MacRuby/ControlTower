@@ -40,7 +40,7 @@ end
 ENV['RACK_ENV'] = 'development'
 
 rackup_config = File.read(File.expand_path(@options[:rackup]))
-app = Rack::Builder.new {( rackup_config )}.to_app
+app = Rack::Builder.new { eval(rackup_config) }.to_app
 
 # Let's get to business!
 server = ControlTower::Server.new(app, @options)
