@@ -11,9 +11,9 @@ information at the MacRuby website (http://www.macruby.org/).
 == CAUTION! AVERTISSEMENT! VOORZICHTIG! 注意!
 
 DO NOT EDIT http11_parser.c! THIS FILE CONTAINS MACHINE GENERATED CODE.
-NE PAS http11_parser.c EDIT! Ce fichier est code machine généré.
+N'EDITEZ PAS http11_parser.c! Ce fichier a été généré automatiquement.
 WIJZIG http11_parser.c NIET! Dit bestand bevat MACHINE gegenereerde code.
-編集しないのhttp11_parser.c！このファイルを機械生成されたコードです。
+http11_parser.cを編集しないでください！このファイルが機械生成されいます。
 
 If you really must, you can recreate http11_parser.c from http11_parser.rl using
 Ragel (not included). It would also be acceptable to replace the parser all at
