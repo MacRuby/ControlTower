@@ -14,15 +14,17 @@ GEM_SPEC = Gem::Specification.new do |spec|
   details).
   DESCRIPTION
   spec.version = CT_VERSION
-  spec.add_runtime_dependency 'rack', '>= 1.0.1'
   spec.files = %w(
     lib/control_tower.rb
     lib/control_tower/rack_socket.rb
     lib/control_tower/server.rb
-    lib/rack/handler/control_tower.rb
     lib/CTParser.bundle
     bin/control_tower
-  )
+    lib/rack/handler/control_tower.rb
+    lib/control_tower/vendor
+    lib/control_tower/vendor/rack
+    lib/control_tower/vendor/rack.rb
+  ) + Dir.glob('lib/control_tower/vendor/rack/*')
   spec.executable = 'control_tower'
 end
 
