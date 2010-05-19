@@ -33,6 +33,7 @@ module ControlTower
         # TODO -- Concurrency doesn't quite work yet...
         #@request_group.dispatch(@request_queue) do
           req_data = parse!(connection, prepare_environment)
+          req_data['REMOTE_ADDR'] = connection.addr[3]
           data = @server.handle_request(req_data)
           data.each do |chunk|
             connection.write chunk
@@ -59,7 +60,7 @@ module ControlTower
 
     def prepare_environment
       { 'rack.errors' => $stderr,
-        'rack.input' => '',
+        'rack.input' => ''.force_encoding('ASCII-8BIT'),
         'rack.multiprocess' => false, # No multiprocess, yet...probably never
         'rack.run_once' => false,
         RACK_VERSION => VERSION }
@@ -75,8 +76,7 @@ module ControlTower
         select([connection], nil, nil, 1)
         if headers_done
           begin
-            data = connection.readpartial(READ_SIZE)
-            env['rack.input'] << data
+            env['rack.input'] << connection.readpartial(READ_SIZE)
           rescue EOFError
             break
           end

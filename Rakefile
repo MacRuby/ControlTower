@@ -24,7 +24,7 @@ GEM_SPEC = Gem::Specification.new do |spec|
     lib/control_tower/vendor
     lib/control_tower/vendor/rack
     lib/control_tower/vendor/rack.rb
-  ) + Dir.glob('lib/control_tower/vendor/rack/*')
+  ) + Dir.glob('lib/control_tower/vendor/rack/**/*')
   spec.executable = 'control_tower'
 end
 
