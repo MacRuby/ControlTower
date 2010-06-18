@@ -1,0 +1,24 @@
+.Dd May 20, 2010
+.Dt CONTROL_TOWER 1
+.Os
+.Sh NAME
+.Nm control_tower
+.Nd Web application server for Rack-based Ruby applications
+.Sh SYNOPSIS
+.Nm control_tower
+.Fl R Ar file
+.Op Fl p Ar server_port
+.Op Fl h Ar hostname
+.Op Fl c
+.Sh OPTIONS
+Control Tower accepts the following command line options:
+.Bl -tag -width 6n
+.It Fl R Ar file , Fl -rackup Ar file
+Rack-up Configuration File
+.It Fl p Ar server_port , Fl -port Ar server_port
+Port on which to run the server
+.It Fl h Ar hostname , Fl -host Ar hostname
+Hostname for the server
+.It Fl c , Fl -[no]-concurrency
+Handle requests concurrently
+.El
