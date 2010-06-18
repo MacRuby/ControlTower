@@ -71,17 +71,19 @@ module ControlTower
       data = ""
       headers_done = false
       content_length = 0
+      connection_handle = NSFileHandle.alloc.initWithFileDescriptor(connection.fileno)
 
       while (!headers_done || env['rack.input'].bytesize < content_length) do
         select([connection], nil, nil, 1)
         if headers_done
           begin
-            env['rack.input'] << connection.readpartial(READ_SIZE)
+            env['rack.input'].appendString(NSString.alloc.initWithData(connection_handle.availableData,
+                                                                       encoding: NSUTF8StringEncoding))
           rescue EOFError
             break
           end
         else
-          data << connection.readpartial(READ_SIZE)
+          data.appendString(NSString.alloc.initWithData(connection_handle.availableData, encoding: NSUTF8StringEncoding))
           nread = parser.parseData(data, forEnvironment: env, startingAt: nread)
           if parser.finished
             headers_done = true
