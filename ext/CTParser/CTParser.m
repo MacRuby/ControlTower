@@ -143,7 +143,7 @@ void header_done(void *env, const char *at, size_t length)
 - (NSNumber *)parseData:(NSString *)dataBuf forEnvironment:(NSMutableDictionary *)env startingAt:(NSNumber *)startingPos
 {
   const char *data = [dataBuf UTF8String];
-  size_t length = [dataBuf length];
+  size_t length = [dataBuf lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
   size_t offset = [startingPos unsignedLongValue];
   _parser->data = env;
 
