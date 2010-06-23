@@ -81,7 +81,8 @@ void header_done(void *env, const char *at, size_t length)
     if (colon_pos.location != NSNotFound) {
       serverName = [hostString substringToIndex:colon_pos.location];
       serverPort = [hostString substringFromIndex:(colon_pos.location + 1)];
-    } else {
+    }
+    else {
       serverName = [NSString stringWithString:hostString];
       serverPort = @"80";
     }
@@ -104,7 +105,8 @@ void header_done(void *env, const char *at, size_t length)
   NSMutableString *body = [environment objectForKey:@"rack.input"];
   if (body != nil) {
     [body appendString:[[NSString alloc] initWithBytes:at length:length encoding:NSASCIIStringEncoding]];
-  } else {
+  }
+  else {
     NSLog(@"Hmm...you seem to have body data but no where to put it. That's probably an error.");
   }
 

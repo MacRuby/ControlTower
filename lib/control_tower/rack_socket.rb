@@ -14,7 +14,6 @@ module ControlTower
       @server = server
       @socket = TCPServer.new(host, port)
       @status = :closed # Start closed and give the server time to start
-      prepare_environment
 
       #if concurrent
       #  @env['rack.multithread'] = true
