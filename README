@@ -1,9 +1,0 @@
-Control Tower
-
-Copyright (c) 2009-2010, Apple Inc
-Author: Joshua Ballanco
-
-SYNOPSIS
-Control Tower is a Web application server for Rack-based Ruby applications. It
-is (or will be) composed of three major components: a networking layer, an HTTP
-parser, and a Rack interface.
