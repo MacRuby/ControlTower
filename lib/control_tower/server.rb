@@ -35,7 +35,7 @@ module ControlTower
     def wrap_output(status, headers, body)
       # Unless somebody's already set it for us (or we don't need it), set the Content-Length
       unless (status == -1 ||
-              (100..199).include?(status) ||
+              (status >= 100 and status <= 199) ||
               status == 204 ||
               status == 304 ||
               headers.has_key?("Content-Length"))
@@ -51,12 +51,14 @@ module ControlTower
       # TODO -- We don't handle keep-alive connections yet
       headers["Connection"] = 'close'
 
-      headers_out = headers.map do |header, value|
-        "#{header}: #{value}\r\n"
-      end.join
+      resp = "HTTP/1.1 #{status}\r\n"
+      headers.each do |header, value|
+        resp << "#{header}: #{value}\r\n"
+      end
+      resp << "\r\n"
 
       # Assemble our response...
-      chunks = ["HTTP/1.1 #{status}\r\n#{headers_out}\r\n"]
+      chunks = [resp]
       if body.respond_to?(:each)
         body.each do |chunk|
           chunks << chunk
