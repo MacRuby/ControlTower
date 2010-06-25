@@ -12,10 +12,7 @@
 @interface CTParser : NSObject
 {
   http_parser *_parser;
-  NSMutableArray *_body;
 }
-
-@property(copy) NSMutableArray *body;
 
 - (id)init;
 - (void)reset;
