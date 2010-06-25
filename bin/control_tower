@@ -9,7 +9,7 @@ require 'optparse'
 @options = {
   :rackup => './config.ru',
   :port => '8080',
-  :host => 'localhost',
+  :host => '0.0.0.0',
   :concurrent => false
 }
 
@@ -46,6 +46,7 @@ app = eval("Rack::Builder.new { #{rackup_config} }").to_app
 server = ControlTower::Server.new(app, @options)
 if server
   puts "You are cleared for take-off!"
+  puts "Listening on #{@options[:host]}:#{@options[:port]}"
   server.start
 else
   puts "Mayday! Mayday! Eject! Eject!\n#{$!}"
