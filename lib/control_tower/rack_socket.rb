@@ -38,15 +38,16 @@ module ControlTower
               response_data.each do |chunk|
                 connection.write chunk
               end
+            else
+              $stderr.puts "Error: No request data receieved!"
             end
-          rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, Errno::EINVAL, Errno::EBADF
-            connection.close rescue nil
-          rescue Errno::EMFILE
-            # TODO: Need to do something about the dispatch queue...a group wait, maybe? or a dispatch semaphore?
+          rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, Errno::EINVAL
+            $stderr.puts "Error: Connection terminated!"
           rescue Object => e
-            $stderr.puts "Error receiving data: #{e.inspect}"
+            $stderr.puts "Error: Problem transmitting data -- #{e.inspect}"
           ensure
-            # TODO: Keep-Alive might be nice, but not yet
+            # We should clean up after our tempfile, if we used one.
+            unlink env['rack.input'] if env['rack.input'].class == Tempfile
             connection.close rescue nil
           end
         end
