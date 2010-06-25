@@ -30,8 +30,9 @@ module ControlTower
         connection = @socket.accept
 
         @request_queue.async(@request_group) do
+          env = prepare_environment
           begin
-            request_data = parse!(connection, prepare_environment)
+            request_data = parse!(connection, env)
             if request_data
               request_data['REMOTE_ADDR'] = connection.addr[3]
               response_data = @server.handle_request(request_data)
@@ -39,7 +40,7 @@ module ControlTower
                 connection.write chunk
               end
             else
-              $stderr.puts "Error: No request data receieved!"
+              $stderr.puts "Error: No request data received!"
             end
           rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, Errno::EINVAL
             $stderr.puts "Error: Connection terminated!"
@@ -47,7 +48,8 @@ module ControlTower
             $stderr.puts "Error: Problem transmitting data -- #{e.inspect}"
           ensure
             # We should clean up after our tempfile, if we used one.
-            unlink env['rack.input'] if env['rack.input'].class == Tempfile
+            input = env['rack.input']
+            unlink input if input.class == Tempfile
             connection.close rescue nil
           end
         end
@@ -96,7 +98,7 @@ module ControlTower
         if parsing_headers
           data.appendData(incoming_bytes)
           nread = parser.parseData(data, forEnvironment: env, startingAt: nread)
-          if parser.finished
+          if parser.finished == 1
             parsing_headers = false # We're done, now on to receiving the body
             content_uploaded = env['rack.input'].first.length
             content_length = env['CONTENT_LENGTH'].to_i
