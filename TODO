@@ -12,9 +12,8 @@ For 0.1:
   [ ] Concurrency testing
 [ ] Handle broken request pipes
 [ ] Don't reset peer connections
-[ ] Protect against malformed Content-Length in headers
-
-For future:
-
+[ ] Handle multibyte characters in headers
 [ ] Improve body loading
 [ ] Fully-async file upload
+[ ] Handle EMFILE error condition
+[ ] Be smarter about using Tempfiles vs StringIO for request body

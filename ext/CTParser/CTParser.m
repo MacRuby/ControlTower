@@ -102,9 +102,9 @@ void header_done(void *env, const char *at, size_t length)
   }
 
   // If we've been given any part of the body, put it here
-  NSMutableString *body = [environment objectForKey:@"rack.input"];
+  NSMutableArray *body = [environment objectForKey:@"rack.input"];
   if (body != nil) {
-    [body appendString:[[NSString alloc] initWithBytes:at length:length encoding:NSASCIIStringEncoding]];
+    [body addObject:[NSData dataWithBytes:at length:length]];
   }
   else {
     NSLog(@"Hmm...you seem to have body data but no where to put it. That's probably an error.");
@@ -142,10 +142,10 @@ void header_done(void *env, const char *at, size_t length)
 }
 
 
-- (NSNumber *)parseData:(NSString *)dataBuf forEnvironment:(NSMutableDictionary *)env startingAt:(NSNumber *)startingPos
+- (NSNumber *)parseData:(NSData *)dataBuf forEnvironment:(NSMutableDictionary *)env startingAt:(NSNumber *)startingPos
 {
-  const char *data = [dataBuf UTF8String];
-  size_t length = [dataBuf lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
+  const char *data = [dataBuf bytes];
+  size_t length = [dataBuf length];
   size_t offset = [startingPos unsignedLongValue];
   _parser->data = env;
 
@@ -159,7 +159,7 @@ void header_done(void *env, const char *at, size_t length)
   return headerLength;
 }
 
-- (NSNumber *)parseData:(NSString *)dataBuf forEnvironment:(NSDictionary *)env
+- (NSNumber *)parseData:(NSData *)dataBuf forEnvironment:(NSDictionary *)env
 {
   return [self parseData:dataBuf forEnvironment:env startingAt:0];
 }

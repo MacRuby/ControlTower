@@ -12,16 +12,16 @@
 @interface CTParser : NSObject
 {
   http_parser *_parser;
-  NSString *_body;
+  NSMutableArray *_body;
 }
 
-@property(copy) NSString *body;
+@property(copy) NSMutableArray *body;
 
 - (id)init;
 - (void)reset;
 
-- (NSNumber *)parseData:(NSString *)dataBuf forEnvironment:(NSDictionary *)env startingAt:(NSNumber *)startingPos;
-- (NSNumber *)parseData:(NSString *)dataBuf forEnvironment:(NSDictionary *)env;
+- (NSNumber *)parseData:(NSData *)dataBuf forEnvironment:(NSDictionary *)env startingAt:(NSNumber *)startingPos;
+- (NSNumber *)parseData:(NSData *)dataBuf forEnvironment:(NSDictionary *)env;
 
 - (BOOL)errorCond;
 - (BOOL)finished;
@@ -29,9 +29,4 @@
 
 - (void)finalize;
 
-@end
-
-// Describe enough of the StringIO interface to write to one
-@interface RBStringIO : NSObject
-- (void)write:(NSString *)dataBuf;
 @end

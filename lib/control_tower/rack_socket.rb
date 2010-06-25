@@ -6,8 +6,6 @@ require 'CTParser'
 
 module ControlTower
   class RackSocket
-    READ_SIZE = 16 * 1024
-    RACK_VERSION = 'rack.version'.freeze
     VERSION = [1,0].freeze
 
     def initialize(host, port, server, concurrent)
@@ -16,8 +14,8 @@ module ControlTower
       @status = :closed # Start closed and give the server time to start
 
       #if concurrent
-      #  @env['rack.multithread'] = true
-      #  @request_queue = Dispatch::Queue.concurrent
+        @multithread = true
+        @request_queue = Dispatch::Queue.concurrent
       #else
       #  @env['rack.multithread'] = false
       #  @request_queue = Dispatch::Queue.new('com.apple.ControlTower.rack_socket_queue')
@@ -29,17 +27,25 @@ module ControlTower
       @status = :open
       while (@status == :open)
         connection = @socket.accept
+        $stdout.puts "**********\nReceived a socket connection at #{Time.now.to_f}"
 
         # TODO -- Concurrency doesn't quite work yet...
-        #@request_group.dispatch(@request_queue) do
+        @request_queue.async do
           req_data = parse!(connection, prepare_environment)
           req_data['REMOTE_ADDR'] = connection.addr[3]
+          $stdout.puts "Sending for handling by the server at #{Time.now.to_f}"
           data = @server.handle_request(req_data)
-          data.each do |chunk|
-            connection.write chunk
+          $stdout.puts "Finished constructing reply at #{Time.now.to_f}"
+          begin
+            data.each do |chunk|
+              connection.write chunk
+            end
+            $stdout.puts "Finished sending reply at #{Time.now.to_f}"
+            connection.close
+          rescue
+            nil
           end
-          connection.close
-        #end
+        end
       end
     end
 
@@ -48,7 +54,7 @@ module ControlTower
 
       # You get 30 seconds to empty the request queue and get outa here!
       Dispatch::Source.timer(30, 0, 1, Dispatch::Queue.concurrent) do
-        puts "Timed out waiting for connections to close"
+        $stdout.puts "Timed out waiting for connections to close"
         exit 1
       end
       #@request_group.wait
@@ -60,43 +66,60 @@ module ControlTower
 
     def prepare_environment
       { 'rack.errors' => $stderr,
-        'rack.input' => ''.force_encoding('ASCII-8BIT'),
+        'rack.input' => NSMutableArray.alloc.init, # For now, collect the body as an array of NSData's
         'rack.multiprocess' => false, # No multiprocess, yet...probably never
+        #'rack.multithread' => @multithread,
         'rack.run_once' => false,
-        RACK_VERSION => VERSION }
+        'rack.version' => VERSION }
     end
 
     def parse!(connection, env)
       parser = ::CTParser.new
-      data = ""
-      headers_done = false
+      data = NSMutableData.alloc.init
+      parsing_headers = true # Parse headers first
       content_length = 0
+      content_uploaded = 0
       connection_handle = NSFileHandle.alloc.initWithFileDescriptor(connection.fileno)
 
-      while (!headers_done || env['rack.input'].bytesize < content_length) do
-        select([connection], nil, nil, 1)
-        if headers_done
-          begin
-            env['rack.input'].appendString(NSString.alloc.initWithData(connection_handle.availableData,
-                                                                       encoding: NSUTF8StringEncoding))
-          rescue EOFError
-            break
-          end
-        else
-          data.appendString(NSString.alloc.initWithData(connection_handle.availableData, encoding: NSUTF8StringEncoding))
+      $stdout.puts "Started parsing at #{Time.now.to_f}"
+      while (parsing_headers || content_uploaded < content_length) do
+        begin
+          # Read the availableData on the socket and rescue any errors:
+          incoming_bytes = connection_handle.availableData
+        rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, Errno::EINVAL, Errno::EBADF
+          connection.close rescue nil
+          return nil
+        rescue Errno::EMFILE
+          # TODO: Need to do something about the dispatch queue...a group wait, maybe? or a dispatch semaphore?
+        rescue Object => e
+          $stdout.puts "Error receiving data: #{e.inspect}"
+        end
+
+        # Until the headers are done being parsed, we'll parse them
+        if parsing_headers
+          data.appendData(incoming_bytes)
+          $stdout.puts "Recieved #{incoming_bytes.length} and have a total of #{data.length} bytes"
           nread = parser.parseData(data, forEnvironment: env, startingAt: nread)
           if parser.finished
-            headers_done = true
+            $stdout.puts "Finished parsing headers at #{Time.now.to_f}"
+            parsing_headers = false # We're done, now on to receiving the body
+            content_uploaded = env['rack.input'].first.length
             content_length = env['CONTENT_LENGTH'].to_i
           end
+        else # Done parsing headers, now just collect request body:
+          content_uploaded += incoming_bytes.length
+          env['rack.input'] << incoming_bytes
         end
       end
 
-      # Rack says "Make that a StringIO!"
+      $stdout.puts "Finished receiving the body at #{Time.now.to_f}"
+      # Rack says "Make that a StringIO!" TODO: We could be smarter about this
       body = Tempfile.new('control-tower-request-body-')
-      body << env['rack.input']
+      body_handle = NSFileHandle.alloc.initWithFileDescriptor(body.fileno)
+      env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
       body.rewind
       env['rack.input'] = body
+      $stdout.puts "Finished creating the rack.input file at #{Time.now.to_f}"
       # Returning what we've got...
       return env
     end
