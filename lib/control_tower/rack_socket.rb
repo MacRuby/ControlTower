@@ -3,6 +3,7 @@
 
 framework 'Foundation'
 require 'CTParser'
+require 'stringio'
 
 module ControlTower
   class RackSocket
@@ -47,7 +48,7 @@ module ControlTower
           rescue Errno::EMFILE
             # TODO: Need to do something about the dispatch queue...a group wait, maybe? or a dispatch semaphore?
           rescue Object => e
-            $stdout.puts "Error receiving data: #{e.inspect}"
+            $stderr.puts "Error receiving data: #{e.inspect}"
           ensure
             # TODO: Keep-Alive might be nice, but not yet
             connection.close rescue nil
@@ -61,7 +62,7 @@ module ControlTower
 
       # You get 30 seconds to empty the request queue and get outa here!
       Dispatch::Source.timer(30, 0, 1, Dispatch::Queue.concurrent) do
-        $stdout.puts "Timed out waiting for connections to close"
+        $stderr.puts "Timed out waiting for connections to close"
         exit 1
       end
       @request_group.wait
@@ -96,7 +97,6 @@ module ControlTower
         # Until the headers are done being parsed, we'll parse them
         if parsing_headers
           data.appendData(incoming_bytes)
-          $stdout.puts "Recieved #{incoming_bytes.length} and have a total of #{data.length} bytes"
           nread = parser.parseData(data, forEnvironment: env, startingAt: nread)
           if parser.finished
             $stdout.puts "Finished parsing headers at #{Time.now.to_f}"
@@ -110,13 +110,18 @@ module ControlTower
         end
 
         $stdout.puts "Finished receiving the body at #{Time.now.to_f}"
-        # Rack says "Make that a StringIO!" TODO: We could be smarter about this
-        body = Tempfile.new('control-tower-request-body-')
-        body_handle = NSFileHandle.alloc.initWithFileDescriptor(body.fileno)
-        env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
-        body.rewind
-        env['rack.input'] = body
-        $stdout.puts "Finished creating the rack.input file at #{Time.now.to_f}"
+        if content_length > 1024 * 1024
+          body = Tempfile.new('control-tower-request-body-')
+          body_handle = NSFileHandle.alloc.initWithFileDescriptor(body.fileno)
+          env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
+          body.rewind
+          env['rack.input'] = body
+          $stdout.puts "Finished creating the rack.input file at #{Time.now.to_f}"
+        else
+          body = StringIO.new
+          env['rack.input'].each { |upload_data| body << upload_data.to_str }
+          env['rack.input'] = body
+        end
         # Returning what we've got...
         return env
       end
