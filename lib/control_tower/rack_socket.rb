@@ -13,14 +13,14 @@ module ControlTower
       @socket = TCPServer.new(host, port)
       @status = :closed # Start closed and give the server time to start
 
-      #if concurrent
+      if concurrent
         @multithread = true
         @request_queue = Dispatch::Queue.concurrent
-      #else
-      #  @env['rack.multithread'] = false
-      #  @request_queue = Dispatch::Queue.new('com.apple.ControlTower.rack_socket_queue')
-      #end
-      #@request_group = Dispatch::Group.new
+        puts "Caution! Wake turbulance from heavy aircraft landing on parallel runway.\n(Parallel Request Action ENABLED!)"
+      else
+        @request_queue = Dispatch::Queue.new('com.apple.ControlTower.rack_socket_queue')
+      end
+      @request_group = Dispatch::Group.new
     end
 
     def open
@@ -29,21 +29,28 @@ module ControlTower
         connection = @socket.accept
         $stdout.puts "**********\nReceived a socket connection at #{Time.now.to_f}"
 
-        # TODO -- Concurrency doesn't quite work yet...
-        @request_queue.async do
-          req_data = parse!(connection, prepare_environment)
-          req_data['REMOTE_ADDR'] = connection.addr[3]
-          $stdout.puts "Sending for handling by the server at #{Time.now.to_f}"
-          data = @server.handle_request(req_data)
-          $stdout.puts "Finished constructing reply at #{Time.now.to_f}"
+        @request_queue.async(@request_group) do
           begin
-            data.each do |chunk|
-              connection.write chunk
+            request_data = parse!(connection, prepare_environment)
+            if request_data
+              request_data['REMOTE_ADDR'] = connection.addr[3]
+              $stdout.puts "Sending for handling by the server at #{Time.now.to_f}"
+              response_data = @server.handle_request(request_data)
+              $stdout.puts "Finished constructing reply at #{Time.now.to_f}"
+              response_data.each do |chunk|
+                connection.write chunk
+              end
+              $stdout.puts "Finished sending reply at #{Time.now.to_f}"
             end
-            $stdout.puts "Finished sending reply at #{Time.now.to_f}"
-            connection.close
-          rescue
-            nil
+          rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, Errno::EINVAL, Errno::EBADF
+            connection.close rescue nil
+          rescue Errno::EMFILE
+            # TODO: Need to do something about the dispatch queue...a group wait, maybe? or a dispatch semaphore?
+          rescue Object => e
+            $stdout.puts "Error receiving data: #{e.inspect}"
+          ensure
+            # TODO: Keep-Alive might be nice, but not yet
+            connection.close rescue nil
           end
         end
       end
@@ -57,7 +64,7 @@ module ControlTower
         $stdout.puts "Timed out waiting for connections to close"
         exit 1
       end
-      #@request_group.wait
+      @request_group.wait
       @socket.close
     end
 
@@ -67,8 +74,8 @@ module ControlTower
     def prepare_environment
       { 'rack.errors' => $stderr,
         'rack.input' => NSMutableArray.alloc.init, # For now, collect the body as an array of NSData's
-        'rack.multiprocess' => false, # No multiprocess, yet...probably never
-        #'rack.multithread' => @multithread,
+        'rack.multiprocess' => false,
+        'rack.multithread' => @multithread,
         'rack.run_once' => false,
         'rack.version' => VERSION }
     end
@@ -83,17 +90,8 @@ module ControlTower
 
       $stdout.puts "Started parsing at #{Time.now.to_f}"
       while (parsing_headers || content_uploaded < content_length) do
-        begin
-          # Read the availableData on the socket and rescue any errors:
-          incoming_bytes = connection_handle.availableData
-        rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, Errno::EINVAL, Errno::EBADF
-          connection.close rescue nil
-          return nil
-        rescue Errno::EMFILE
-          # TODO: Need to do something about the dispatch queue...a group wait, maybe? or a dispatch semaphore?
-        rescue Object => e
-          $stdout.puts "Error receiving data: #{e.inspect}"
-        end
+        # Read the availableData on the socket and rescue any errors:
+        incoming_bytes = connection_handle.availableData
 
         # Until the headers are done being parsed, we'll parse them
         if parsing_headers
@@ -110,18 +108,18 @@ module ControlTower
           content_uploaded += incoming_bytes.length
           env['rack.input'] << incoming_bytes
         end
-      end
 
-      $stdout.puts "Finished receiving the body at #{Time.now.to_f}"
-      # Rack says "Make that a StringIO!" TODO: We could be smarter about this
-      body = Tempfile.new('control-tower-request-body-')
-      body_handle = NSFileHandle.alloc.initWithFileDescriptor(body.fileno)
-      env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
-      body.rewind
-      env['rack.input'] = body
-      $stdout.puts "Finished creating the rack.input file at #{Time.now.to_f}"
-      # Returning what we've got...
-      return env
+        $stdout.puts "Finished receiving the body at #{Time.now.to_f}"
+        # Rack says "Make that a StringIO!" TODO: We could be smarter about this
+        body = Tempfile.new('control-tower-request-body-')
+        body_handle = NSFileHandle.alloc.initWithFileDescriptor(body.fileno)
+        env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
+        body.rewind
+        env['rack.input'] = body
+        $stdout.puts "Finished creating the rack.input file at #{Time.now.to_f}"
+        # Returning what we've got...
+        return env
+      end
     end
   end
 end
