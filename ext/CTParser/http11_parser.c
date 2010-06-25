@@ -56,7 +56,7 @@ size_t http_parser_execute(http_parser *parser, const char *buffer, size_t len, 
   p = buffer+off;
   pe = buffer+len;
 
-  //assert(*pe == '\0' && "pointer does not end on NUL");
+  assert(*pe == '\0' && "pointer does not end on NUL");
   assert(pe - p == len - off && "pointers aren't same distance");
 
 
