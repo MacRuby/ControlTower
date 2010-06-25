@@ -105,20 +105,19 @@ module ControlTower
           content_uploaded += incoming_bytes.length
           env['rack.input'] << incoming_bytes
         end
+      end
 
-        $stdout.puts "Finished receiving the body at #{Time.now.to_f}"
-        if content_length > 1024 * 1024
-          body = Tempfile.new('control-tower-request-body-')
-          body_handle = NSFileHandle.alloc.initWithFileDescriptor(body.fileno)
-          env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
-          body.rewind
-          env['rack.input'] = body
-          $stdout.puts "Finished creating the rack.input file at #{Time.now.to_f}"
-        else
-          body = StringIO.new
-          env['rack.input'].each { |upload_data| body << upload_data.to_str }
-          env['rack.input'] = body
-        end
+      if content_length > 1024 * 1024
+        body = Tempfile.new('control-tower-request-body-')
+        body_handle = NSFileHandle.alloc.initWithFileDescriptor(body.fileno)
+        env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
+        body.rewind
+        env['rack.input'] = body
+        $stdout.puts "Finished creating the rack.input file at #{Time.now.to_f}"
+      else
+        body = StringIO.new
+        env['rack.input'].each { |upload_data| body << upload_data.to_str }
+        env['rack.input'] = body
       end
       # Returning what we've got...
       return env
