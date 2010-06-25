@@ -134,8 +134,6 @@ header_done(void *env, const char *at, size_t length)
 
 @implementation CTParser
 
-@synthesize body = _body;
-
 - (id)init
 {
     self = [super init];
