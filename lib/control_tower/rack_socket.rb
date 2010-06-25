@@ -28,20 +28,16 @@ module ControlTower
       @status = :open
       while (@status == :open)
         connection = @socket.accept
-        $stdout.puts "**********\nReceived a socket connection at #{Time.now.to_f}"
 
         @request_queue.async(@request_group) do
           begin
             request_data = parse!(connection, prepare_environment)
             if request_data
               request_data['REMOTE_ADDR'] = connection.addr[3]
-              $stdout.puts "Sending for handling by the server at #{Time.now.to_f}"
               response_data = @server.handle_request(request_data)
-              $stdout.puts "Finished constructing reply at #{Time.now.to_f}"
               response_data.each do |chunk|
                 connection.write chunk
               end
-              $stdout.puts "Finished sending reply at #{Time.now.to_f}"
             end
           rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, Errno::EINVAL, Errno::EBADF
             connection.close rescue nil
@@ -90,7 +86,6 @@ module ControlTower
       content_uploaded = 0
       connection_handle = NSFileHandle.alloc.initWithFileDescriptor(connection.fileno)
 
-      $stdout.puts "Started parsing at #{Time.now.to_f}"
       while (parsing_headers || content_uploaded < content_length) do
         # Read the availableData on the socket and give up if there's nothing
         incoming_bytes = connection_handle.availableData
@@ -99,10 +94,8 @@ module ControlTower
         # Until the headers are done being parsed, we'll parse them
         if parsing_headers
           data.appendData(incoming_bytes)
-          $stdout.puts "Calling parser with #{data.length} bytes starting at #{nread}"
           nread = parser.parseData(data, forEnvironment: env, startingAt: nread)
           if parser.finished
-            $stdout.puts "Finished parsing headers at #{Time.now.to_f}"
             parsing_headers = false # We're done, now on to receiving the body
             content_uploaded = env['rack.input'].first.length
             content_length = env['CONTENT_LENGTH'].to_i
