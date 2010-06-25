@@ -1,22 +1,22 @@
 For 0.1:
 
 [ ] Logging!
-  [ ] An ASL-based Logger class
-  [ ] Request logging (e.g. appache_access.log)
-  [ ] Error logging (e.g. appache_error.log)
+  [ ] An ASL-based Logger class (?)
+  [ ] Request logging (maybe? this is also handled by Rack::CommonLogger)
   [ ] Debug logging
+  [ ] Benchmark logging
 [ ] Testing!
   [ ] Parser test cases
   [ ] GET test cases
   [ ] POST test cases
   [ ] Concurrency testing
-[ ] Handle broken request pipes
-[ ] Don't reset peer connections
-[ ] Handle multibyte characters in headers
-[ ] Improve body loading
-[ ] Fully-async file upload
-[ ] Handle EMFILE error condition
-[ ] Be smarter about using Tempfiles vs StringIO for request body
+[X] Handle broken request pipes
+[X] Don't reset peer connections
+[X] Handle multibyte characters in headers
+[X] Improve body loading
+[X] Be smarter about using Tempfiles vs StringIO for request body
 
 For beyond:
 [ ] Daemonizable!
+[ ] Accept local requests only
+[ ] Keep alive (this one is tough...probably post 1.0)
