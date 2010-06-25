@@ -85,18 +85,21 @@ module ControlTower
       parser = ::CTParser.new
       data = NSMutableData.alloc.init
       parsing_headers = true # Parse headers first
+      nread = 0
       content_length = 0
       content_uploaded = 0
       connection_handle = NSFileHandle.alloc.initWithFileDescriptor(connection.fileno)
 
       $stdout.puts "Started parsing at #{Time.now.to_f}"
       while (parsing_headers || content_uploaded < content_length) do
-        # Read the availableData on the socket and rescue any errors:
+        # Read the availableData on the socket and give up if there's nothing
         incoming_bytes = connection_handle.availableData
+        return nil if incoming_bytes.length == 0
 
         # Until the headers are done being parsed, we'll parse them
         if parsing_headers
           data.appendData(incoming_bytes)
+          $stdout.puts "Calling parser with #{data.length} bytes starting at #{nread}"
           nread = parser.parseData(data, forEnvironment: env, startingAt: nread)
           if parser.finished
             $stdout.puts "Finished parsing headers at #{Time.now.to_f}"
@@ -122,9 +125,9 @@ module ControlTower
           env['rack.input'].each { |upload_data| body << upload_data.to_str }
           env['rack.input'] = body
         end
-        # Returning what we've got...
-        return env
       end
+      # Returning what we've got...
+      return env
     end
   end
 end
