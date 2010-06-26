@@ -40,6 +40,8 @@ desc "Build CTParser"
 task :build do
   gcc = RbConfig::CONFIG['CC']
   cflags = RbConfig::CONFIG['CFLAGS'] + ' ' + RbConfig::CONFIG['ARCH_FLAG']
+  cflags.sub!(/-O./, '-O3')
+  cflags << " -Wall"
 
   Dir.chdir('ext/CTParser') do 
     sh "#{gcc} #{cflags} -fobjc-gc CTParser.m -c -o CTParser.o"
