@@ -31,15 +31,15 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-unless File.exist? File.expand_path(@options[:rackup])
-  puts "We only know how to deal with Rack-up configs for now"
+unless File.exist?(@options[:rackup])
+  $stderr.puts "Rack-up config file `#{@options[:rackup]}' doesn't exist!"
   exit 1
 end
 
 # Under construction...everything is development!
 ENV['RACK_ENV'] = 'development'
 
-rackup_config = File.read(File.expand_path(@options[:rackup]))
+rackup_config = File.read(@options[:rackup])
 app = eval("Rack::Builder.new { #{rackup_config} }").to_app
 
 # Let's get to business!
