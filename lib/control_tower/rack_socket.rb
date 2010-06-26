@@ -81,8 +81,10 @@ module ControlTower
     end
 
     def parse!(connection, env)
-      parser = ::CTParser.new
+      parser = Thread.current[:http_parser] ||= ::CTParser.new
+      parser.reset
       data = NSMutableData.alloc.init
+      data.increaseLengthBy(1)
       parsing_headers = true # Parse headers first
       nread = 0
       content_length = 0
@@ -96,7 +98,9 @@ module ControlTower
 
         # Until the headers are done being parsed, we'll parse them
         if parsing_headers
+          data.setLength(data.length - 1) # Remove sentinel
           data.appendData(incoming_bytes)
+          data.increaseLengthBy(1) # Add sentinel
           nread = parser.parseData(data, forEnvironment: env, startingAt: nread)
           if parser.finished == 1
             parsing_headers = false # We're done, now on to receiving the body
@@ -115,7 +119,6 @@ module ControlTower
         env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
         body.rewind
         env['rack.input'] = body
-        $stdout.puts "Finished creating the rack.input file at #{Time.now.to_f}"
       else
         body = StringIO.new
         env['rack.input'].each { |upload_data| body << upload_data.to_str }

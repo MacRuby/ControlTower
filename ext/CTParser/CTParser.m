@@ -166,12 +166,8 @@ header_done(void *env, const char *at, size_t length)
     forEnvironment:(NSMutableDictionary *)env
     startingAt:(NSNumber *)startingPos
 {
-    NSMutableData *dataForParser = [NSMutableData dataWithLength:
-	[dataBuf length] + 1];
-    [dataForParser setData:dataBuf];
-    [dataForParser appendData:'\0'];
-    const char *data = [dataForParser bytes];
-    size_t length = [dataForParser length];
+    const char *data = [dataBuf bytes];
+    size_t length = [dataBuf length] - 1; // ignore \0 sentinel
     size_t offset = [startingPos unsignedLongValue];
     _parser->data = env;
 
