@@ -10,7 +10,7 @@ module ControlTower
     VERSION = [1,0].freeze
 
     def initialize(host, port, server, concurrent)
-      @server = server
+      @app = server.app
       @socket = TCPServer.new(host, port)
       @status = :closed # Start closed and give the server time to start
 
@@ -19,6 +19,7 @@ module ControlTower
         @request_queue = Dispatch::Queue.concurrent
         puts "Caution! Wake turbulance from heavy aircraft landing on parallel runway.\n(Parallel Request Action ENABLED!)"
       else
+        @multithread = false
         @request_queue = Dispatch::Queue.new('com.apple.ControlTower.rack_socket_queue')
       end
       @request_group = Dispatch::Group.new
@@ -30,15 +31,53 @@ module ControlTower
         connection = @socket.accept
 
         @request_queue.async(@request_group) do
-          env = prepare_environment
+          env = { 'rack.errors' => $stderr,
+                  'rack.multiprocess' => false,
+                  'rack.multithread' => @multithread,
+                  'rack.run_once' => false,
+                  'rack.version' => VERSION }
           begin
             request_data = parse!(connection, env)
             if request_data
               request_data['REMOTE_ADDR'] = connection.addr[3]
-              response_data = @server.handle_request(request_data)
-              response_data.each do |chunk|
-                connection.write chunk
+              status, headers, body = @app.call(request_data)
+
+              # Unless somebody's already set it for us (or we don't need it), set the Content-Length
+              unless (status == -1 ||
+                      (status >= 100 and status <= 199) ||
+                      status == 204 ||
+                      status == 304 ||
+                      headers.has_key?('Content-Length'))
+                headers['Content-Length'] = if body.respond_to?(:each)
+                                              size = 0
+                                              body.each { |x| size += x.bytesize }
+                                              size
+                                            else
+                                              body.bytesize
+                                            end
               end
+
+              # TODO -- We don't handle keep-alive connections yet
+              headers['Connection'] = 'close'
+
+              resp = "HTTP/1.1 #{status}\r\n"
+              headers.each do |header, value|
+                resp << "#{header}: #{value}\r\n"
+              end
+              resp << "\r\n"
+
+              # Start writing the response
+              connection.write resp
+
+              # Finish writing out the body
+              if body.respond_to?(:each)
+                body.each do |chunk|
+                  connection.write chunk
+                end
+              else
+                connection.write body
+              end
+
             else
               $stderr.puts "Error: No request data received!"
             end
@@ -71,15 +110,6 @@ module ControlTower
 
 
     private
-
-    def prepare_environment
-      { 'rack.errors' => $stderr,
-        'rack.input' => NSMutableData.new,
-        'rack.multiprocess' => false,
-        'rack.multithread' => @multithread,
-        'rack.run_once' => false,
-        'rack.version' => VERSION }
-    end
 
     def parse!(connection, env)
       parser = Thread.current[:http_parser] ||= ::CTParser.new
