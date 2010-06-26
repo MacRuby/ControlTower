@@ -113,6 +113,7 @@ header_done(void *env, const char *at, size_t length)
 
     [environment setObject:@"HTTP/1.1" forKey:@"SERVER_PROTOCOL"];
     [environment setObject:SERVER_SOFTWARE forKey:@"SERVER_SOFTWARE"];
+    [environment setObject:@"" forKey:@"SCRIPT_NAME"];
 
     // We don't do tls yet
     [environment setObject:@"http" forKey:@"rack.url_scheme"];
