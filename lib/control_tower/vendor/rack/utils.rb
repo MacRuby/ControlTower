@@ -530,7 +530,7 @@ module Rack
                 content_type = head[/Content-Type: (.*)#{EOL}/ni, 1]
                 name = head[/Content-Disposition:.*\s+name="?([^\";]*)"?/ni, 1] || head[/Content-ID:\s*([^#{EOL}]*)/ni, 1]
 
-                if filename
+                if content_type || filename
                   body = Tempfile.new("RackMultipart")
                   body.binmode  if body.respond_to?(:binmode)
                 end
