@@ -46,6 +46,7 @@ module ControlTower
             $stderr.puts "Error: Connection terminated!"
           rescue Object => e
             $stderr.puts "Error: Problem transmitting data -- #{e.inspect}"
+            $stderr.puts e.backtrace.join("\n")
           ensure
             # We should clean up after our tempfile, if we used one.
             input = env['rack.input']
@@ -73,7 +74,7 @@ module ControlTower
 
     def prepare_environment
       { 'rack.errors' => $stderr,
-        'rack.input' => NSMutableArray.alloc.init, # For now, collect the body as an array of NSData's
+        'rack.input' => NSMutableData.new,
         'rack.multiprocess' => false,
         'rack.multithread' => @multithread,
         'rack.run_once' => false,
@@ -104,25 +105,22 @@ module ControlTower
           nread = parser.parseData(data, forEnvironment: env, startingAt: nread)
           if parser.finished == 1
             parsing_headers = false # We're done, now on to receiving the body
-            content_uploaded = env['rack.input'].first.length
             content_length = env['CONTENT_LENGTH'].to_i
+            content_uploaded = env['rack.input'].length
           end
         else # Done parsing headers, now just collect request body:
           content_uploaded += incoming_bytes.length
-          env['rack.input'] << incoming_bytes
+          env['rack.input'].appendData(incoming_bytes)
         end
       end
 
       if content_length > 1024 * 1024
-        body = Tempfile.new('control-tower-request-body-')
-        body_handle = NSFileHandle.alloc.initWithFileDescriptor(body.fileno)
-        env['rack.input'].each { |upload_data| body_handle.writeData(upload_data) }
-        body.rewind
-        env['rack.input'] = body
+        body_file = Tempfile.new('control-tower-request-body-')
+        NSFileHandle.alloc.initWithFileDescriptor(body_file.fileno).writeData(env['rack.input'])
+        body_file.rewind
+        env['rack.input'] = body_file
       else
-        body = StringIO.new
-        env['rack.input'].each { |upload_data| body << upload_data.to_str }
-        env['rack.input'] = body
+        env['rack.input'] = StringIO.new(NSString.alloc.initWithData(env['rack.input'], encoding: NSASCIIStringEncoding))
       end
       # Returning what we've got...
       return env
