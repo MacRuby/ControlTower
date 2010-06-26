@@ -20,7 +20,6 @@ module ControlTower
     end
 
     def handle_request(env)
-      env
       wrap_output(*@app.call(env))
     end
 

@@ -124,9 +124,9 @@ header_done(void *env, const char *at, size_t length)
     }
 
     // If we've been given any part of the body, put it here
-    NSMutableArray *body = [environment objectForKey:@"rack.input"];
+    NSMutableData *body = [environment objectForKey:@"rack.input"];
     if (body != nil) {
-	[body addObject:[NSData dataWithBytes:at length:length]];
+        [body appendData:[NSData dataWithBytes:at length:length]];
     }
     else {
 	NSLog(@"Hmm...you seem to have body data but no where to put it. That's probably an error.");
