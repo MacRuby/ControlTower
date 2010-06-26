@@ -124,13 +124,9 @@ header_done(void *env, const char *at, size_t length)
     }
 
     // If we've been given any part of the body, put it here
-    NSMutableData *body = [environment objectForKey:@"rack.input"];
-    if (body != nil) {
-        [body appendData:[NSData dataWithBytes:at length:length]];
-    }
-    else {
-	NSLog(@"Hmm...you seem to have body data but no where to put it. That's probably an error.");
-    }
+    NSMutableData *body = [[NSMutableData alloc] init];
+    [body appendData:[NSData dataWithBytes:at length:length]];
+    [environment setObject:body forKey:@"rack.input"];
 }
 
 @implementation CTParser
