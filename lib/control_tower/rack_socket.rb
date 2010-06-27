@@ -5,6 +5,8 @@ framework 'Foundation'
 require 'CTParser'
 require 'stringio'
 
+CTParser # Making sure the Objective-C class is pre-loaded
+
 module ControlTower
   class RackSocket
     VERSION = [1,0].freeze
@@ -112,10 +114,10 @@ module ControlTower
     private
 
     def parse!(connection, env)
-      parser = Thread.current[:http_parser] ||= ::CTParser.new
+      parser = Thread.current[:http_parser] ||= CTParser.new
       parser.reset
       data = NSMutableData.alloc.init
-      data.increaseLengthBy(1)
+      data.increaseLengthBy(1) # add sentinel
       parsing_headers = true # Parse headers first
       nread = 0
       content_length = 0
