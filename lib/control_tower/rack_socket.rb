@@ -14,6 +14,7 @@ module ControlTower
     def initialize(host, port, server, concurrent)
       @app = server.app
       @socket = TCPServer.new(host, port)
+      @socket.listen(50)
       @status = :closed # Start closed and give the server time to start
 
       if concurrent
