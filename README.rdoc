@@ -19,13 +19,4 @@ There are currently only 4 supported command line options:
 * -c                    : Use this to enable serving requests to a GCD concurrent queue
 
 === License
-Control Tower is covered by the Ruby license. See COPYING for more details.
-
-=== Credits
-Control Tower's parser was stolen Thin which stole it from Mongrel (http://mongrel.rubyforge.org) originially written by Zed Shaw.
-Mongrel Web Server (Mongrel) is copyrighted free software by Zed A. Shaw <zedshaw at zedshaw dot com> You can redistribute it and/or
-modify it under the terms of the GPL.
-
-Thin is copyright Marc-Andre Cournoyer <macournoyer@gmail.com>
-
-Control Tower is copyright (c) 2009-2010, Apple Inc
+All the files in this distribution are covered under the Ruby's license (see the file COPYING).
