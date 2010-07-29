@@ -8,21 +8,21 @@ require 'optparse'
 # Some default values
 @options = {
   :rackup => './config.ru',
-  :port => '8080',
+  :port => '3000',
   :host => '0.0.0.0',
   :concurrent => false
 }
 
 OptionParser.new do |opts|
-  opts.on("-R", "--rackup [FILE]", "Rack-up Configuration File") do |rackup|
+  opts.on("-R", "--rackup FILE", "Rack-up Configuration File") do |rackup|
     @options[:rackup] = rackup
   end
 
-  opts.on("-p", "--port [SERVER_PORT]", Integer, "Port on which to run the server") do |port|
+  opts.on("-p", "--port PORT", Integer, "Port on which to run the server (default: 3000)") do |port|
     @options[:port] = port
   end
 
-  opts.on("-h", "--host [HOSTNAME]", "Hostname for the server") do |host|
+  opts.on("-a", "--address HOST", "Address to bind server to (default: 0.0.0.0)") do |host|
     @options[:host] = host
   end
 

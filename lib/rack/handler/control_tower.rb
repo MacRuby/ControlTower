@@ -7,6 +7,7 @@ module Rack
   module Handler
     class ControlTower
       def self.run(app, options={})
+        app = Rack::Chunked.new(Rack::ContentLength.new(app))
         server = ::ControlTower::Server.new(app, options)
         yield server if block_given?
         server.start

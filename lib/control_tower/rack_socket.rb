@@ -39,6 +39,9 @@ module ControlTower
                   'rack.multithread' => @multithread,
                   'rack.run_once' => false,
                   'rack.version' => VERSION }
+          resp = nil
+          x_sendfile_header = "X-Sendfile"
+          x_sendfile = nil
           begin
             request_data = parse!(connection, env)
             if request_data
@@ -65,6 +68,9 @@ module ControlTower
 
               resp = "HTTP/1.1 #{status}\r\n"
               headers.each do |header, value|
+                if header == x_sendfile_header
+                  x_sendfile = value
+                else
                 resp << "#{header}: #{value}\r\n"
               end
               resp << "\r\n"
@@ -87,8 +93,13 @@ module ControlTower
           rescue EOFError, Errno::ECONNRESET, Errno::EPIPE, Errno::EINVAL
             $stderr.puts "Error: Connection terminated!"
           rescue Object => e
-            $stderr.puts "Error: Problem transmitting data -- #{e.inspect}"
-            $stderr.puts e.backtrace.join("\n")
+            if resp.nil? && !connection.closed?
+              connection.write "HTTP/1.1 400\r\n\r\n"
+            else
+              # We have a response, but there was trouble sending it:
+              $stderr.puts "Error: Problem transmitting data -- #{e.inspect}"
+              $stderr.puts e.backtrace.join("\n")
+            end
           ensure
             # We should clean up after our tempfile, if we used one.
             input = env['rack.input']
