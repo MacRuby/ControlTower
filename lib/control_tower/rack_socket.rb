@@ -40,13 +40,21 @@ module ControlTower
                   'rack.run_once' => false,
                   'rack.version' => VERSION }
           resp = nil
-          x_sendfile_header = "X-Sendfile"
+          x_sendfile_header = 'X-Sendfile'
           x_sendfile = nil
           begin
             request_data = parse!(connection, env)
             if request_data
               request_data['REMOTE_ADDR'] = connection.addr[3]
               status, headers, body = @app.call(request_data)
+
+              # If there's an X-Sendfile header, we'll use sendfile(2)
+              if headers.has_key?(x_sendfile_header)
+                x_sendfile = headers[x_sendfile_header]
+                x_sendfile = ::File.open(x_sendfile, 'r') unless x_sendfile.kind_of? IO
+                x_sendfile_size = x_sendfile.stat.size
+                headers['Content-Length'] = x_sendfile_size
+              end
 
               # Unless somebody's already set it for us (or we don't need it), set the Content-Length
               unless (status == -1 ||
@@ -68,9 +76,6 @@ module ControlTower
 
               resp = "HTTP/1.1 #{status}\r\n"
               headers.each do |header, value|
-                if header == x_sendfile_header
-                  x_sendfile = value
-                else
                 resp << "#{header}: #{value}\r\n"
               end
               resp << "\r\n"
@@ -78,8 +83,10 @@ module ControlTower
               # Start writing the response
               connection.write resp
 
-              # Finish writing out the body
-              if body.respond_to?(:each)
+              # Write the body
+              if x_sendfile
+                connection.sendfile(x_sendfile, 0, x_sendfile_size)
+              elsif body.respond_to?(:each)
                 body.each do |chunk|
                   connection.write chunk
                 end
