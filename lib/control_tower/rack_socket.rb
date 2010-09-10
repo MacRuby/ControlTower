@@ -110,7 +110,7 @@ module ControlTower
           ensure
             # We should clean up after our tempfile, if we used one.
             input = env['rack.input']
-            unlink input if input.class == Tempfile
+            input.unlink if input.class == Tempfile
             connection.close rescue nil
           end
         end
