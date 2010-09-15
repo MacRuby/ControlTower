@@ -53,6 +53,7 @@ module ControlTower
                 x_sendfile = headers[x_sendfile_header]
                 x_sendfile = ::File.open(x_sendfile, 'r') unless x_sendfile.kind_of? IO
                 x_sendfile_size = x_sendfile.stat.size
+                headers.delete(x_sendfile_header)
                 headers['Content-Length'] = x_sendfile_size
               end
 
