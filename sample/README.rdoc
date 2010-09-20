@@ -1,0 +1,64 @@
+== ControlTower Sample Files
+
+The samples in this directory should help you explore ControlTower's features.
+To use these samples, first build and install the Control Tower gem. Then, start
+the Rack-up config for each example like so:
+
+> control_tower -R <sample.ru>
+
+and test it with a curl or wget like so:
+
+> curl http://0.0.0.0:3000/
+
+To try a POST request, use curl (or similar tool) to send a post with some file
+content like so:
+
+> curl -F "file=@README.rdoc" http://0.0.0.0:3000/
+
+Each of the samples demonstrates a different feature of ControlTower.
+
+
+=== simple_hello.ru
+
+This is just a basic 'hello, world' style app. It demonstrates the basic concept
+of Rack. Specifically, the object that you pass as an argument to 'run' in the
+Rack-up config must have a #call method. That call method takes one argument,
+the environment (which is returned with the request in this sample), and it must
+return an array of 3 items: the response code, a hash of response headers, and
+the response body.
+
+
+=== sinatra_hello.ru
+
+This sample demonstrates how you can use a Rack-based web app framework with
+ControlTower. In this case, the "MyApp" class inherits from Sinatra::Base, and
+is compliant with the Rack app contract. Don't forget to install Sinatra before
+you give this one a try!
+
+
+=== file_upload.ru
+
+POST bodies are delivered as either StringIO or Tempfiles, and if the Post is a
+multipart-form MIME type, the Rack utilities will parse the various parts. This
+sample demonstrates these features by returning the parts of a multipart-form
+POST body, including reading the contents of any file uploaded.
+
+
+=== x_sendfile.ru
+
+MacRuby includes the ability to use the sendfile(2) API with IO objects. Since
+ControlTower directly handles interaction with the system-level sockets for
+incoming connections, we can utilize this to send files to a client very
+efficiently (sendfile avoids excess kernel-userland context switches). This
+sample demonstrates how to use the X-Sendfile header in your response to take
+advantage of this feature.
+
+
+=== photo_search.ru
+
+This is a slightly more complicated example. This sample takes the first letter
+from the query string (the bit that comes after a "?" in the URL) and searches
+Picasa for photos with that first letter as the first letter of their
+descriptions using the Picasa API. Try benchmarking this sample when running
+with the "-c" switch, and you'll see why being GCD based is an advantage when
+working with apps that call out to APIs which might have non-trivial latency.
