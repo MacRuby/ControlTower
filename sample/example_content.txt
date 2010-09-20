@@ -1,0 +1,3 @@
+This is a file with some content to demonstrate ControlTower's X-Sendfile functionality.
+
+See the README for more info.

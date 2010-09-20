@@ -1,22 +1,39 @@
-== Control Tower
-Control Tower is a web application server for Rack-based MacRuby applications based on Apple's Grand Central Dispatch libraries.
+== ControlTower
 
-It is composed of three major components: A Grand Central Dispatch based networking layer, the Mongrel HTTP parser, and Rack web
-application interface. It is currently very much a work in progress!
+ControlTower is a web application server for Rack-based MacRuby applications
+based on Apple's Grand Central Dispatch libraries.
+
+It is composed of three major components: A Grand Central Dispatch based
+networking layer, the Mongrel HTTP parser, and a Rack web application interface.
+
 
 === Installation
-From the root directory of the project, run:
+
+ControlTower can be installed as a gem using the `macgem` command. To build and
+install from source, go to the root directory of the project and run:
 
   $ rake package
-  $ sudo macgem install pkg/control_tower-0.1-universal-darwin-10.gem
+  $ sudo macgem install pkg/control_tower-1.0-universal-darwin-10.gem
+
 
 === Usage
+
 There are currently only 4 supported command line options:
 
-* -R <rackup_config.ru> : Where you specify the Rackup config file to run
-* -h <hostname>         : Hostname for the server (Control Tower will only respond to requests to this host)
-* -p <port>             : Port # for the server
-* -c                    : Use this to enable serving requests to a GCD concurrent queue
+* -R <config.ru> : Where you specify the Rack-up config to run
+* -a <host>      : Address to bind server to (default: 0.0.0.0)
+* -p <port>      : Port on which to run the server (default: 3000)
+* -c             : Enable serving requests on a concurrent GCD queue
+
+
+=== Sample
+
+There are a collection of Rack-up configs located in the "sample" directory that
+demonstrate some features of ControlTower and MacRuby. See the README in that
+directory for more information.
+
 
 === License
-All the files in this distribution are covered under the Ruby's license (see the file COPYING).
+
+All the files in this distribution are covered under the Ruby's license (see the
+file COPYING).

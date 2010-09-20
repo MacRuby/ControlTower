@@ -6,8 +6,7 @@
 #include "http11_parser.h"
 #import <Foundation/Foundation.h>
 
-// TODO - We should grab this from a plist somewhere...
-#define SERVER_SOFTWARE @"Control Tower v0.1"
+#define SERVER_SOFTWARE @"Control Tower v1.0"
 
 @interface CTParser : NSObject
 {
