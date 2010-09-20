@@ -4,7 +4,6 @@ require 'rake/gempackagetask'
 CT_VERSION = '1.0'
 
 GEM_SPEC = Gem::Specification.new do |spec|
-  spec.platform = Gem::Platform.local
   spec.name = 'control_tower'
   spec.summary = 'A Rack-based HTTP server for MacRuby'
   spec.description = <<-DESCRIPTION
