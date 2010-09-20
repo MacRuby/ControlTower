@@ -1,3 +1,7 @@
+# This is a basic Sinatra sample.
+#
+# NOTE: You must have the Sinatra gem installed before running
+
 require 'rubygems'
 require 'sinatra/base'
 

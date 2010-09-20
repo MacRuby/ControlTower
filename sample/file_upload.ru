@@ -1,3 +1,6 @@
+# This sample will read a file passed as part of a multipart-post body in a
+# section named 'file'
+
 require 'rack'
 
 class Uploader
