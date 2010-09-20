@@ -1,31 +1,35 @@
 require 'rubygems'
 require 'rake/gempackagetask'
 
-CT_VERSION = '0.1'
+CT_VERSION = '1.0'
 
 GEM_SPEC = Gem::Specification.new do |spec|
   spec.platform = Gem::Platform.local
   spec.name = 'control_tower'
-  spec.summary = "A Rack-based HTTP server for MacRuby"
+  spec.summary = 'A Rack-based HTTP server for MacRuby'
   spec.description = <<-DESCRIPTION
   Control Tower is a Rack-based HTTP server designed to work with MacRuby. It can
   be used by calling to its Rack::Handler class, or by running the control_tower
   executable with a Rackup configuration file (see the control tower help for more
   details).
   DESCRIPTION
+  spec.author = 'MacRuby Team'
+  spec.email = 'macruby-devel@lists.macosforge.org'
+  spec.homepage = 'http://www.macruby.org'
   spec.version = CT_VERSION
-  spec.files = %w(
-    lib/control_tower.rb
-    lib/control_tower/rack_socket.rb
-    lib/control_tower/server.rb
-    lib/CTParser.bundle
-    bin/control_tower
-    lib/rack/handler/control_tower.rb
-    lib/control_tower/vendor
-    lib/control_tower/vendor/rack
-    lib/control_tower/vendor/rack.rb
-  ) + Dir.glob('lib/control_tower/vendor/rack/**/*')
+  spec.files = %w( lib/control_tower.rb
+                   lib/control_tower/rack_socket.rb
+                   lib/control_tower/server.rb
+                   lib/rack/handler/control_tower.rb
+                   bin/control_tower
+                   ext/CTParser/http11_parser.h
+                   ext/CTParser/http11_parser.c
+                   ext/CTParser/CTParser.h
+                   ext/CTParser/CTParser.m
+                   ext/CTParser/extconf.rb )
+  spec.extensions << 'ext/CTParser/extconf.rb'
   spec.executable = 'control_tower'
+  spec.add_dependency('rack', '= 1.2.1')
 end
 
 verbose(true)
