@@ -28,6 +28,7 @@ module Rack
           @session_timer.cancel! unless @session_timer.nil?
           time_remaining = @session_expires_at - Time.now
           if time_remaining < 0
+            warn "Session #{@session_id} has expired" if $DEBUG
             @session_store.delete(@session_id)
           else
             @session_timer = Dispatch::Source.timer(time_remaining, 500, 0.5, @session_access_queue, &@timer_block)
@@ -83,6 +84,7 @@ module Rack
       end
 
       def get_session(env, sid)
+        env['rack.errors'].puts("Searching through #{@sessions.length} live sessions") if $VERBOSE
         session = @sessions[sid] if sid
         unless sid and session
           env['rack.errors'].puts("Session '#{sid.inspect}' not found, initializing...") if $VERBOSE and not sid.nil?
