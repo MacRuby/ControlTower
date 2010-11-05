@@ -20,6 +20,7 @@ GEM_SPEC = Gem::Specification.new do |spec|
                    lib/control_tower/rack_socket.rb
                    lib/control_tower/server.rb
                    lib/rack/handler/control_tower.rb
+                   lib/rack/session/gcd.rb
                    bin/control_tower
                    ext/CTParser/http11_parser.h
                    ext/CTParser/http11_parser.c
