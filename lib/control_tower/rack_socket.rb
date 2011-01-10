@@ -172,7 +172,7 @@ module ControlTower
         body_file.rewind
         env['rack.input'] = body_file
       else
-        env['rack.input'] = StringIO.new(NSString.alloc.initWithData(env['rack.input'], encoding: NSASCIIStringEncoding))
+        env['rack.input'] = StringIO.new(env['rack.input'])
       end
       # Returning what we've got...
       return env
