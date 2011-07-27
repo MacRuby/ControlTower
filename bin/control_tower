@@ -18,7 +18,7 @@ OptionParser.new do |opts|
     @options[:rackup] = rackup
   end
 
-  opts.on("-p", "--port PORT", Integer, "Port on which to run the server (default: 3000)") do |port|
+  opts.on("-p", "--port PORT", Integer, "Port on which to run the server (default: 3000) (0 gets the socket from launchd and ignores --address)") do |port|
     @options[:port] = port
   end
 
@@ -45,8 +45,11 @@ app = eval("Rack::Builder.new { #{rackup_config} }").to_app
 # Let's get to business!
 server = ControlTower::Server.new(app, @options)
 if server
-  puts "You are cleared for take-off!"
-  puts "Listening on #{@options[:host]}:#{@options[:port]}"
+  if @options[:port] != 0
+    puts "Control Tower is listening on #{@options[:host]}:#{@options[:port]}"
+  else
+    puts "Control Tower is receiving socket connections from launchd"
+  end
   server.start
 else
   puts "Mayday! Mayday! Eject! Eject!\n#{$!}"
