@@ -24,7 +24,7 @@ module ControlTower
     private
 
     def parse_options(opt)
-      @port = (opt[:port] || 8080).to_i
+      @port = opt[:port].to_i
       @host = opt[:host] || `hostname`.chomp
       @concurrent = opt[:concurrent]
     end
