@@ -13,5 +13,7 @@ module Rack
         server.start
       end
     end
+    
+    register 'control_tower', ControlTower
   end
 end
